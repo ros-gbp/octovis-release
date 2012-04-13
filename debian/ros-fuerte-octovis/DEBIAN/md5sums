@@ -1,0 +1,13 @@
+4055a9e6720dfa5e81c03d441b42d348  opt/ros/fuerte/bin/octovis
+50bec25677549d30c41803c76bda1c52  opt/ros/fuerte/include/octovis/ColorOcTreeDrawer.h
+20e003c755e3c5c90233ab87c6b70570  opt/ros/fuerte/include/octovis/OcTreeDrawer.h
+eb23419be0c2cbdf0a0aaa5872f7fab0  opt/ros/fuerte/include/octovis/OcTreeRecord.h
+6e5892a8e055bac95c0cb23b1f507e21  opt/ros/fuerte/include/octovis/PointcloudDrawer.h
+a234f2e8a4f830d363f890d437ff1133  opt/ros/fuerte/include/octovis/SceneObject.h
+c0ad90f8f82a92127fbea5cd43642e67  opt/ros/fuerte/include/octovis/TrajectoryDrawer.h
+101bf570ac1d8cc265bda27950f8f3e0  opt/ros/fuerte/lib/cmake/octovis/octovis-config-version.cmake
+da703f16ebe3b3861482bc655cbe20dd  opt/ros/fuerte/lib/cmake/octovis/octovis-config.cmake
+17d0da071f05cec02b26cc445a411ca0  opt/ros/fuerte/lib/liboctovis.a
+bc50bbae29aebe31599e2a785ed8bce0  opt/ros/fuerte/lib/liboctovis.so
+c65d9cc076f3024317d428441729b14b  usr/share/doc/ros-fuerte-octovis/changelog.Debian.gz
+6d8330bd4088c111729f99b334605f9f  usr/share/doc/ros-fuerte-octovis/copyright
