@@ -1,4 +1,4 @@
-// $Id: ViewerWidget.cpp 301 2011-09-02 09:23:23Z kai_wurm $
+// $Id: ViewerWidget.cpp 363 2012-04-16 09:41:51Z ahornung $
 
 /**
  * Octomap:
@@ -40,11 +40,22 @@ namespace octomap {
     m_printoutMode = false;
     m_heightColorMode = false;      
     m_semantic_coloring = false;      
+    m_drawSelectionBox = false;
   }
 
   void ViewerWidget::init() {
+
+//    setHandlerKeyboardModifiers(QGLViewer::CAMERA, Qt::AltModifier);
+//    setHandlerKeyboardModifiers(QGLViewer::FRAME, Qt::NoModifier);
+//    setHandlerKeyboardModifiers(QGLViewer::CAMERA, Qt::ControlModifier);
+    setMouseTracking(true);
+
     // Restore previous viewer state.
     restoreStateFromFile();
+
+    // Make camera the default manipulated frame.
+    setManipulatedFrame( camera()->frame() );
+
 
     // Light initialization:
     glEnable(GL_LIGHT0);
@@ -103,6 +114,11 @@ namespace octomap {
       (*it)->enableSemanticColoring(enabled);
     }
     updateGL();
+  }
+
+  void ViewerWidget::enableSelectionBox(bool enabled) {
+	  m_drawSelectionBox = enabled;
+	  updateGL();
   }
 
 
@@ -315,6 +331,24 @@ namespace octomap {
         it != m_sceneObjects.end(); ++it){
       (*it)->draw();
     }
+
+    if (m_drawSelectionBox){
+    	m_selectionBox.draw();
+
+      if (m_selectionBox.getGrabbedFrame() >= 0){
+        setMouseBinding(Qt::LeftButton, FRAME, TRANSLATE);
+      } else {
+        setMouseBinding(Qt::LeftButton, FRAME, ROTATE);
+      }
+
+    }
+
+  }
+
+  void ViewerWidget::drawWithNames(){
+
+	  if (m_drawSelectionBox)
+		  m_selectionBox.draw(true);
   }
 
   void ViewerWidget::postDraw(){
@@ -353,6 +387,13 @@ namespace octomap {
     setAxisIsDrawn(m_drawAxis);
     setGridIsDrawn(m_drawGrid);
   }
+
+  void ViewerWidget::postSelection(const QPoint&)
+  {
+
+  }
+
+
 
 } // namespace
 

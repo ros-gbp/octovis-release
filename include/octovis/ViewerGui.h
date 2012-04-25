@@ -1,4 +1,4 @@
-// $Id: ViewerGui.h 343 2012-02-22 10:01:17Z ahornung $
+// $Id: ViewerGui.h 365 2012-04-24 12:47:08Z ahornung $
 
 /**
 * Octomap:
@@ -82,6 +82,10 @@ namespace octomap {
     void on_actionSave_file_triggered();
     void on_actionExport_view_triggered();
     void on_actionExport_sequence_triggered(bool checked);
+    void on_actionClear_selection_triggered();
+    void on_actionFill_selection_triggered();
+    void on_actionClear_nodes_in_selection_triggered();
+    void on_actionFill_nodes_in_selection_triggered();
     void on_actionHelp_triggered();
     void on_actionSettings_triggered();
     void on_actionPrune_tree_triggered();
@@ -89,6 +93,7 @@ namespace octomap {
     void on_actionConvert_ml_tree_triggered();
     void on_actionReload_Octree_triggered();
     void on_actionPrintout_mode_toggled(bool checked);
+    void on_actionSelection_box_toggled(bool checked);
     void on_actionHeight_map_toggled(bool checked);
     void on_actionSemanticColoring_toggled(bool checked);
     void on_actionStore_camera_triggered();
@@ -182,6 +187,10 @@ namespace octomap {
     void saveCameraPosition(const char* filename) const;
     void loadCameraPosition(const char* filename);
 
+    void updateNodesInBBX(const point3d& min, const point3d& max, float logodds);
+    void updateNodesInBBX(const point3d& min, const point3d& max, bool occupied);
+    void setNodesInBBX(const point3d& min, const point3d& max, float logodds);
+    void setNodesInBBX(const point3d& min, const point3d& max, bool occupied);
 
     std::map<int, OcTreeRecord> m_octrees;
  

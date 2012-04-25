@@ -1,4 +1,4 @@
-// $Id: ViewerGui.cpp 343 2012-02-22 10:01:17Z ahornung $
+// $Id: ViewerGui.cpp 365 2012-04-24 12:47:08Z ahornung $
 
 /**
  * Octomap:
@@ -228,14 +228,15 @@ namespace octomap{
   void ViewerGui::showOcTree() {
 
     // update viewer stat
-    if (m_octrees.size()) {
       double minX, minY, minZ, maxX, maxY, maxZ;
-      minX = minY = minZ = 1e6;
-      maxX = maxY = maxZ = -1e6;
+      minX = minY = minZ = -10; // min bbx for drawing
+      maxX = maxY = maxZ = 10;  // max bbx for drawing
       double sizeX, sizeY, sizeZ;
       sizeX = sizeY = sizeZ = 0.;
-      unsigned memoryUsage = 0;
-      unsigned int num_nodes = 0;
+      size_t memoryUsage = 0;
+      size_t num_nodes = 0;
+      size_t memorySingleNode = 0;
+
     
       for (std::map<int, OcTreeRecord>::iterator it = m_octrees.begin(); it != m_octrees.end(); ++it) {
         // get map bbx
@@ -264,22 +265,20 @@ namespace octomap{
         if (lsizeZ > sizeZ) sizeZ = lsizeZ;
         memoryUsage += it->second.octree->memoryUsage();
         num_nodes += it->second.octree->size();
+        memorySingleNode = std::max(memorySingleNode, it->second.octree->memoryUsageNode());
       }
 
       m_glwidget->setSceneBoundingBox(qglviewer::Vec(minX, minY, minZ), qglviewer::Vec(maxX, maxY, maxZ));
 
-      QString size = QString("%L1m x %L2m x %L3m").arg(sizeX).arg(sizeY).arg(sizeZ);
-      QString memory = QString("%L1 nodes; ").arg(num_nodes)
-        + QString ("%L1 B (%L2 MB)").arg(memoryUsage).arg((double) memoryUsage/(1024.*1024.), 0, 'f', 3);
+    if (m_octrees.size()) {
+      QString size = QString("%L1 x %L2 x %L3 m^3; %L4 nodes").arg(sizeX).arg(sizeY).arg(sizeZ).arg(unsigned(num_nodes));
+      QString memory = QString("Single node: %L1 B; ").arg(memorySingleNode)
+        + QString ("Octree: %L1 B (%L2 MB)").arg(memoryUsage).arg((double) memoryUsage/(1024.*1024.), 0, 'f', 3);
       m_mapMemoryStatus->setText(memory);
       m_mapSizeStatus->setText(size);
-      m_glwidget->updateGL();
     }
-    else {
-      QMessageBox::warning(this, "Tree not present",
-       "Trying to show OcTree but no tree present. This should not happen.",
-       QMessageBox::Ok);
-    }
+
+    m_glwidget->updateGL();
 
     // generate cubes -> display
    // timeval start; 
@@ -552,7 +551,7 @@ namespace octomap{
     ui.actionOctree_structure->setEnabled(true);
     ui.actionOctree_structure->setChecked(false);
     ui.actionTrajectory->setEnabled(false);
-    ui.actionConvert_ml_tree->setEnabled(false);
+    ui.actionConvert_ml_tree->setEnabled(true);
     ui.actionReload_Octree->setEnabled(true);
     ui.actionSettings->setEnabled(false);
   }
@@ -598,7 +597,7 @@ namespace octomap{
   // EXPERIMENTAL
   void ViewerGui::openMapCollection() {
 
-    fprintf(stderr, "opening hierarchy from %s...\n", m_filename.c_str());
+    OCTOMAP_DEBUG("Opening hierarchy from %s...\n", m_filename.c_str());
 
     std::ifstream infile(m_filename.c_str(), std::ios_base::in |std::ios_base::binary);
     if (!infile.is_open()) {
@@ -611,11 +610,12 @@ namespace octomap{
     int i=0;
     for (MapCollection<MapNode<OcTree> >::iterator it = collection.begin(); 
          it != collection.end(); ++it) {
-      fprintf(stderr, "adding hierarchy node %s\n", (*it)->getId().c_str());
+      OCTOMAP_DEBUG("Adding hierarchy node %s\n", (*it)->getId().c_str());
       OcTree* tree = (*it)->getMap();
-      if (!tree)  fprintf(stderr, "error while reading node %s\n", (*it)->getId().c_str());
+      if (!tree)
+        OCTOMAP_ERROR("Error while reading node %s\n", (*it)->getId().c_str());
       else {
-        fprintf(stderr, "read tree with %lu tree nodes\n", tree->size());
+        OCTOMAP_DEBUG("Read tree with %zu tree nodes\n", tree->size());
       }
       pose6d  origin = (*it)->getOrigin();
       this->addOctree(tree, i, origin);
@@ -624,7 +624,7 @@ namespace octomap{
     setOcTreeUISwitches();
     showOcTree();
     m_glwidget->resetView();
-    fprintf(stderr, "done\n");
+    OCTOMAP_DEBUG("done\n");
   }
 
   void ViewerGui::loadGraph(bool completeGraph) {
@@ -747,7 +747,7 @@ namespace octomap{
   void ViewerGui::on_actionOpen_file_triggered(){
     QString filename = QFileDialog::getOpenFileName(this,
       tr("Open data file"), "",
-      "All supported files (*.graph *.bt *.ot *.dat *.cot);;Binary scan graph (*.graph);;Bonsai tree (*.bt);;OcTree (*.ot);;ColorOcTree (*.cot);;Pointcloud (*.dat);;All files (*)");
+      "All supported files (*.graph *.bt *.ot *.dat);;OcTree file (*.ot);;Bonsai tree file (*.bt);;Binary scan graph (*.graph);;Pointcloud (*.dat);;All files (*)");
     if (!filename.isEmpty()){
 #ifdef _WIN32      
       m_filename = std::string(filename.toLocal8Bit().data());
@@ -762,7 +762,7 @@ namespace octomap{
   void ViewerGui::on_actionOpen_graph_incremental_triggered(){
     QString filename = QFileDialog::getOpenFileName(this,
      tr("Open graph file incrementally (at start)"), "",
-     "binary scan graph (*.graph)");
+     "Binary scan graph (*.graph)");
     if (!filename.isEmpty()){
       m_glwidget->clearAll();
 
@@ -788,7 +788,7 @@ namespace octomap{
     }
 
     QString filename = QFileDialog::getSaveFileName(this, tr("Save octree file"),
-                                                    "", tr("Bonsai Tree file (*.bt);;Full OcTree (*.ot)"));
+                                                    "", tr("Full OcTree (*.ot);;Bonsai Tree file (*.bt);;"));
 
     if (filename != ""){
       QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -827,6 +827,131 @@ namespace octomap{
     }
   }
 
+  void ViewerGui::on_actionClear_nodes_in_selection_triggered(){
+	  point3d min, max;
+	  m_glwidget->selectionBox().getBBXMin(min.x(), min.y(), min.z());
+	  m_glwidget->selectionBox().getBBXMax(max.x(), max.y(), max.z());
+
+	  updateNodesInBBX(min, max, false);
+  }
+
+  void ViewerGui::on_actionClear_selection_triggered(){
+	  point3d min, max;
+	  m_glwidget->selectionBox().getBBXMin(min.x(), min.y(), min.z());
+	  m_glwidget->selectionBox().getBBXMax(max.x(), max.y(), max.z());
+
+	  setNodesInBBX(min, max, false);
+  }
+
+  void ViewerGui::on_actionFill_selection_triggered(){
+	  point3d min, max;
+	  m_glwidget->selectionBox().getBBXMin(min.x(), min.y(), min.z());
+	  m_glwidget->selectionBox().getBBXMax(max.x(), max.y(), max.z());
+
+	  setNodesInBBX(min, max, true);
+  }
+
+  void ViewerGui::on_actionFill_nodes_in_selection_triggered(){
+	  point3d min, max;
+	  m_glwidget->selectionBox().getBBXMin(min.x(), min.y(), min.z());
+	  m_glwidget->selectionBox().getBBXMax(max.x(), max.y(), max.z());
+
+	  updateNodesInBBX(min, max, true);
+  }
+
+
+
+  void ViewerGui::updateNodesInBBX(const point3d& min, const point3d& max, float logodds){
+	  for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+	    OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+
+	    if (octree){
+
+	    	for(OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(min,max),
+	    			end=octree->end_leafs_bbx(); it!= end; ++it){
+	    		octree->updateNode(it.getKey(), logodds);
+	    	}
+	    }
+
+	  }
+
+	  showOcTree();
+  }
+
+
+  void ViewerGui::updateNodesInBBX(const point3d& min, const point3d& max, bool occupied){
+	  for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+	    OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+
+	    if (octree){
+	      float logodds = octree->getClampingThresMaxLog() - octree->getClampingThresMinLog();
+	      if (!occupied)
+	        logodds *= -1;
+
+	    	for(OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(min,max),
+	    			end=octree->end_leafs_bbx(); it!= end; ++it){
+	    		octree->updateNode(it.getKey(), logodds);
+	    	}
+	    }
+
+	  }
+
+	  showOcTree();
+  }
+
+
+  void ViewerGui::setNodesInBBX(const point3d& min, const point3d& max, float logodds){
+	  for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+	    OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+
+	    if (octree){
+	    	OcTreeKey minKey(0,0,0);
+        OcTreeKey maxKey(0,0,0);
+	    	octree->genKey(min, minKey);
+	    	octree->genKey(max, maxKey);
+	    	OcTreeKey k;
+	    	for (k[0] = minKey[0]; k[0] < maxKey[0]; ++k[0]){
+	    		for (k[1] = minKey[1]; k[1] < maxKey[1]; ++k[1]){
+	    			for (k[2] = minKey[2]; k[2] < maxKey[2]; ++k[2]){
+	    				octree->updateNode(k, logodds);
+	    			}
+	    		}
+	    	}
+	    }
+
+	  }
+
+	  showOcTree();
+  }
+
+  void ViewerGui::setNodesInBBX(const point3d& min, const point3d& max, bool occupied){
+	  for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+	    OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+
+	    if (octree){
+	      float logodds = octree->getClampingThresMaxLog() - octree->getClampingThresMinLog();
+	      if (!occupied)
+	        logodds *= -1;
+
+	    	OcTreeKey minKey(0,0,0);
+        OcTreeKey maxKey(0,0,0);
+	    	octree->genKey(min, minKey);
+	    	octree->genKey(max, maxKey);
+	    	OcTreeKey k;
+	    	for (k[0] = minKey[0]; k[0] < maxKey[0]; ++k[0]){
+	    		for (k[1] = minKey[1]; k[1] < maxKey[1]; ++k[1]){
+	    			for (k[2] = minKey[2]; k[2] < maxKey[2]; ++k[2]){
+	    				octree->updateNode(k, logodds);
+	    			}
+	    		}
+	    	}
+	    }
+
+	  }
+
+	  showOcTree();
+  }
+
   void ViewerGui::on_actionExport_view_triggered(){
     m_glwidget->openSnapshotFormatDialog();
     m_glwidget->saveSnapshot(false);
@@ -853,6 +978,18 @@ namespace octomap{
     }
 
     m_glwidget->enablePrintoutMode(checked);
+  }
+
+  void ViewerGui::on_actionSelection_box_toggled(bool checked){
+	  ui.actionClear_selection->setEnabled(checked);
+	  ui.actionFill_selection->setEnabled(checked);
+	  ui.actionClear_nodes_in_selection->setEnabled(checked);
+	  ui.actionFill_nodes_in_selection->setEnabled(checked);
+
+    m_glwidget->enableSelectionBox(checked);
+
+
+	  m_glwidget->updateGL();
   }
 
   void ViewerGui::on_actionHeight_map_toggled(bool checked){
