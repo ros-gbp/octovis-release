@@ -9,5 +9,5 @@ Standards-Version: 3.9.2
 Package: ros-fuerte-octovis
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libqt4-opengl-dev,libqglviewer-qt4-dev,ros-fuerte-octomap,libqt4-dev
-Description: octovis is visualization tool for the OctoMap library based on Qt and libQGLViewer.
+Description: octovis is visualization tool for the OctoMap library based on Qt and libQGLViewer. See http://octomap.sf.net for details.
 
