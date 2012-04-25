@@ -1,4 +1,4 @@
-// $Id: SceneObject.h 259 2011-08-15 16:47:46Z ahornung $
+// $Id: SceneObject.h 364 2012-04-18 13:00:01Z ahornung $
 
 /**
 * Octomap:
@@ -26,6 +26,12 @@
 
 #ifndef SCENEOBJECT_H_
 #define SCENEOBJECT_H_
+
+#ifdef Q_WS_MAC
+  #include <OpenGL/glu.h>
+#else
+  #include <GL/glu.h>
+#endif
 
 #include <qglviewer.h>
 #include <octomap/octomap.h>
