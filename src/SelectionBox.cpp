@@ -1,3 +1,31 @@
+// $Id: SelectionBox.cpp 402 2012-08-06 13:39:42Z ahornung $
+
+/**
+ * Octomap:
+ * A  probabilistic, flexible, and compact 3D mapping library for robotic systems.
+ * @author K. M. Wurm, A. Hornung, University of Freiburg, Copyright (C) 2012.
+ * @see http://octomap.sourceforge.net/
+ * License: GNU GPL v2, http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+ */
+
+/*
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
+
+// workaround for Windows
+#define NOMINMAX
 #include <octovis/SelectionBox.h>
 
 namespace octomap{
@@ -45,7 +73,6 @@ namespace octomap{
   SelectionBox::~SelectionBox(){
 	  delete m_frames[0];
 	  delete m_frames[1];
-
   }
 
   void SelectionBox::draw(bool withNames){
@@ -194,9 +221,9 @@ namespace octomap{
     z = frame(0)->position().z;
 
     for (unsigned i = 1; i < m_frames.size(); ++i){
-      x = std::min(x,frame(i)->position().x);
-      y = std::min(y,frame(i)->position().y);
-      z = std::min(z,frame(i)->position().z);
+      x = std::min(x,float(frame(i)->position().x));
+      y = std::min(y,float(frame(i)->position().y));
+      z = std::min(z,float(frame(i)->position().z));
     }
   }
 
@@ -206,9 +233,9 @@ namespace octomap{
     z = frame(0)->position().z;
 
     for (unsigned i = 1; i < m_frames.size(); ++i){
-      x = std::max(x,frame(i)->position().x);
-      y = std::max(y,frame(i)->position().y);
-      z = std::max(z,frame(i)->position().z);
+      x = std::max(x,float(frame(i)->position().x));
+      y = std::max(y,float(frame(i)->position().y));
+      z = std::max(z,float(frame(i)->position().z));
     }
   }
 

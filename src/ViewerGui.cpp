@@ -1,4 +1,4 @@
-// $Id: ViewerGui.cpp 365 2012-04-24 12:47:08Z ahornung $
+// $Id: ViewerGui.cpp 402 2012-08-06 13:39:42Z ahornung $
 
 /**
  * Octomap:
@@ -286,7 +286,7 @@ namespace octomap{
    // gettimeofday(&start, NULL);  // start timer    
     for (std::map<int, OcTreeRecord>::iterator it = m_octrees.begin(); it != m_octrees.end(); ++it) {
       it->second.octree_drawer->setMax_tree_depth(m_max_tree_depth);
-      it->second.octree_drawer->setOcTree(it->second.octree, it->second.origin, it->second.id);
+      it->second.octree_drawer->setOcTree(*it->second.octree, it->second.origin, it->second.id);
     }
 //    gettimeofday(&stop, NULL);  // stop timer
 //    double time_to_generate = (stop.tv_sec - start.tv_sec) + 1.0e-6 *(stop.tv_usec - start.tv_usec);
@@ -859,6 +859,62 @@ namespace octomap{
 	  updateNodesInBBX(min, max, true);
   }
 
+  void ViewerGui::on_actionDelete_nodes_in_selection_triggered(){
+    point3d min, max;
+    m_glwidget->selectionBox().getBBXMin(min.x(), min.y(), min.z());
+    m_glwidget->selectionBox().getBBXMax(max.x(), max.y(), max.z());
+
+    for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+      OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+
+      if (octree){
+        for(OcTree::leaf_bbx_iterator it = octree->begin_leafs_bbx(min,max),
+            end=octree->end_leafs_bbx(); it!= end; ++it){
+          octree->deleteNode(it.getKey(), it.getDepth());
+        }
+      } else{
+        QMessageBox::warning(this, "Not implemented", "Functionality not yet implemented for this octree type",
+                                     QMessageBox::Ok);
+
+      }
+    }
+
+    showOcTree();
+  }
+
+  void ViewerGui::on_actionDelete_nodes_outside_of_selection_triggered(){
+    point3d min, max;
+    m_glwidget->selectionBox().getBBXMin(min.x(), min.y(), min.z());
+    m_glwidget->selectionBox().getBBXMax(max.x(), max.y(), max.z());
+
+    for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+      OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+
+      if (octree){
+        octomap::OcTreeKey minKey, maxKey;
+
+        if (!octree->coordToKeyChecked(min, minKey) || !octree->coordToKeyChecked(max, maxKey)){
+          return;
+        }
+
+        for(OcTree::leaf_iterator it = octree->begin_leafs(),
+            end=octree->end_leafs(); it!= end; ++it){
+          // check if outside of bbx:
+          OcTreeKey k = it.getKey();
+          if  (k[0] < minKey[0] || k[1] < minKey[1] || k[2] < minKey[2]
+            || k[0] > maxKey[0] || k[1] > maxKey[1] || k[2] > maxKey[2])
+          {
+            octree->deleteNode(k, it.getDepth());
+          }
+        }
+      } else
+        QMessageBox::warning(this, "Not implemented", "Functionality not yet implemented for this octree type",
+                                     QMessageBox::Ok);
+    }
+
+    showOcTree();
+  }
+
 
 
   void ViewerGui::updateNodesInBBX(const point3d& min, const point3d& max, float logodds){
@@ -871,7 +927,9 @@ namespace octomap{
 	    			end=octree->end_leafs_bbx(); it!= end; ++it){
 	    		octree->updateNode(it.getKey(), logodds);
 	    	}
-	    }
+	    } else
+        QMessageBox::warning(this, "Not implemented", "Functionality not yet implemented for this octree type",
+                                     QMessageBox::Ok);
 
 	  }
 
@@ -892,7 +950,9 @@ namespace octomap{
 	    			end=octree->end_leafs_bbx(); it!= end; ++it){
 	    		octree->updateNode(it.getKey(), logodds);
 	    	}
-	    }
+	    } else
+        QMessageBox::warning(this, "Not implemented", "Functionality not yet implemented for this octree type",
+                                     QMessageBox::Ok);
 
 	  }
 
@@ -901,55 +961,55 @@ namespace octomap{
 
 
   void ViewerGui::setNodesInBBX(const point3d& min, const point3d& max, float logodds){
-	  for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
-	    OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+    for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+      OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
 
-	    if (octree){
-	    	OcTreeKey minKey(0,0,0);
+      if (octree){
+        OcTreeKey minKey(0,0,0);
         OcTreeKey maxKey(0,0,0);
-	    	octree->genKey(min, minKey);
-	    	octree->genKey(max, maxKey);
-	    	OcTreeKey k;
-	    	for (k[0] = minKey[0]; k[0] < maxKey[0]; ++k[0]){
-	    		for (k[1] = minKey[1]; k[1] < maxKey[1]; ++k[1]){
-	    			for (k[2] = minKey[2]; k[2] < maxKey[2]; ++k[2]){
-	    				octree->updateNode(k, logodds);
-	    			}
-	    		}
-	    	}
-	    }
+        octree->coordToKeyChecked(min, minKey);
+        octree->coordToKeyChecked(max, maxKey);
+        OcTreeKey k;
+        for (k[0] = minKey[0]; k[0] < maxKey[0]; ++k[0]){
+          for (k[1] = minKey[1]; k[1] < maxKey[1]; ++k[1]){
+            for (k[2] = minKey[2]; k[2] < maxKey[2]; ++k[2]){
+              octree->updateNode(k, logodds);
+            }
+          }
+        }
+      }
 
-	  }
+    }
 
-	  showOcTree();
+    showOcTree();
   }
 
   void ViewerGui::setNodesInBBX(const point3d& min, const point3d& max, bool occupied){
-	  for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
-	    OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
+    for (std::map<int, OcTreeRecord>::iterator t_it = m_octrees.begin(); t_it != m_octrees.end(); ++t_it) {
+      OcTree* octree = dynamic_cast<OcTree*>(t_it->second.octree);
 
-	    if (octree){
-	      float logodds = octree->getClampingThresMaxLog() - octree->getClampingThresMinLog();
-	      if (!occupied)
-	        logodds *= -1;
+      if (octree){
+        float logodds = octree->getClampingThresMaxLog() - octree->getClampingThresMinLog();
+        if (!occupied)
+          logodds *= -1;
 
-	    	OcTreeKey minKey(0,0,0);
+        OcTreeKey minKey(0,0,0);
         OcTreeKey maxKey(0,0,0);
-	    	octree->genKey(min, minKey);
-	    	octree->genKey(max, maxKey);
-	    	OcTreeKey k;
-	    	for (k[0] = minKey[0]; k[0] < maxKey[0]; ++k[0]){
-	    		for (k[1] = minKey[1]; k[1] < maxKey[1]; ++k[1]){
-	    			for (k[2] = minKey[2]; k[2] < maxKey[2]; ++k[2]){
-	    				octree->updateNode(k, logodds);
-	    			}
-	    		}
-	    	}
-	    }
+        octree->coordToKeyChecked(min, minKey);
+        octree->coordToKeyChecked(max, maxKey);
+        OcTreeKey k;
+        for (k[0] = minKey[0]; k[0] < maxKey[0]; ++k[0]){
+          for (k[1] = minKey[1]; k[1] < maxKey[1]; ++k[1]){
+            for (k[2] = minKey[2]; k[2] < maxKey[2]; ++k[2]){
+              octree->updateNode(k, logodds);
+            }
+          }
+        }
+      }
 
-	  }
+    }
 
-	  showOcTree();
+    showOcTree();
   }
 
   void ViewerGui::on_actionExport_view_triggered(){
@@ -985,6 +1045,8 @@ namespace octomap{
 	  ui.actionFill_selection->setEnabled(checked);
 	  ui.actionClear_nodes_in_selection->setEnabled(checked);
 	  ui.actionFill_nodes_in_selection->setEnabled(checked);
+	  ui.actionDelete_nodes_in_selection->setEnabled(checked);
+	  ui.actionDelete_nodes_outside_of_selection->setEnabled(checked);
 
     m_glwidget->enableSelectionBox(checked);
 

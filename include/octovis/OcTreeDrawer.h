@@ -1,4 +1,4 @@
-// $Id: OcTreeDrawer.h 357 2012-04-06 10:34:09Z ahornung $
+// $Id: OcTreeDrawer.h 402 2012-08-06 13:39:42Z ahornung $
 
 /**
  * Octomap:
@@ -42,15 +42,14 @@ namespace octomap {
     // initialization of drawer  -------------------------
 
     /// sets a new OcTree that should be drawn by this drawer
-    DEPRECATED( void setOcTree(const octomap::OcTree &octree) ) {
+    void setOcTree(const AbstractOcTree& octree){
       octomap::pose6d o; // initialized to (0,0,0) , (0,0,0,1) by default
-      const AbstractOcTree* tree_pnt = &octree;
-      setOcTree(tree_pnt, o, 0);
+      setOcTree(octree, o, 0);
     }
 
     /// sets a new OcTree that should be drawn by this drawer
     /// origin specifies a global transformation that should be applied
-    virtual void setOcTree(const AbstractOcTree* tree_pnt, octomap::pose6d origin_, int map_id_);
+    virtual void setOcTree(const AbstractOcTree& octree, const octomap::pose6d& origin, int map_id_);
 
     // modification of existing drawer  ------------------
 

@@ -1,4 +1,4 @@
-// $Id: SceneObject.h 364 2012-04-18 13:00:01Z ahornung $
+// $Id: SceneObject.h 382 2012-06-06 12:16:57Z ahornung $
 
 /**
 * Octomap:
@@ -26,6 +26,12 @@
 
 #ifndef SCENEOBJECT_H_
 #define SCENEOBJECT_H_
+
+// fix Windows includes
+#include <qglobal.h>
+#ifdef Q_WS_WIN
+  #include <QtCore/qt_windows.h>
+#endif
 
 #ifdef Q_WS_MAC
   #include <OpenGL/glu.h>
