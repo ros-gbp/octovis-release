@@ -1,4 +1,4 @@
-// $Id: ViewerGui.h 365 2012-04-24 12:47:08Z ahornung $
+// $Id: ViewerGui.h 402 2012-08-06 13:39:42Z ahornung $
 
 /**
 * Octomap:
@@ -44,6 +44,7 @@
 #include "ui_ViewerGui.h"
 
 #include <octomap/AbstractOcTree.h>
+#include <octomap/OcTreeBase.h>
 #include <octovis/OcTreeRecord.h>
 
 namespace octomap {
@@ -86,6 +87,8 @@ namespace octomap {
     void on_actionFill_selection_triggered();
     void on_actionClear_nodes_in_selection_triggered();
     void on_actionFill_nodes_in_selection_triggered();
+    void on_actionDelete_nodes_in_selection_triggered();
+    void on_actionDelete_nodes_outside_of_selection_triggered();
     void on_actionHelp_triggered();
     void on_actionSettings_triggered();
     void on_actionPrune_tree_triggered();
@@ -211,7 +214,7 @@ namespace octomap {
     QLabel* m_mapSizeStatus;
     QLabel* m_mapMemoryStatus;
 
-    //! Filename of last loaded file, in case it is necessary to reload it
+    /// Filename of last loaded file, in case it is necessary to reload it
     std::string m_filename;
   };
 

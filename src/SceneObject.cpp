@@ -1,4 +1,4 @@
-// $Id: SceneObject.cpp 259 2011-08-15 16:47:46Z ahornung $
+// $Id: SceneObject.cpp 381 2012-05-30 16:09:04Z ahornung $
 
 /**
 * Octomap:
@@ -24,6 +24,7 @@
 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+#define NOMINMAX
 #include <octovis/SceneObject.h>
 
 #ifndef RAD2DEG

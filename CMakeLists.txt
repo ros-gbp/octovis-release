@@ -3,8 +3,8 @@ PROJECT( octovis )
 
 # # version (e.g. for packaging)
 set(OCTOVIS_MAJOR_VERSION 1)
-set(OCTOVIS_MINOR_VERSION 4)
-set(OCTOVIS_PATCH_VERSION 2)
+set(OCTOVIS_MINOR_VERSION 5)
+set(OCTOVIS_PATCH_VERSION 0)
 set(OCTOVIS_VERSION ${OCTOVIS_MAJOR_VERSION}.${OCTOVIS_MINOR_VERSION}.${OCTOVIS_PATCH_VERSION})
 # get rid of a useless warning:
 if(COMMAND cmake_policy)
@@ -126,6 +126,7 @@ IF(BUILD_VIEWER)
   
 ELSE()
     MESSAGE ( "Unfortunately, the viewer (octovis) can not be built because some requirements are missing.")
+	MESSAGE ( "This will not affect the compilation of the stand-alone library and tools (octomap)")
     MESSAGE ( "See README.txt or http://octomap.sf.net for further information.\n")
 ENDIF()
 
