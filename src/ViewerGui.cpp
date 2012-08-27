@@ -1,4 +1,4 @@
-// $Id: ViewerGui.cpp 402 2012-08-06 13:39:42Z ahornung $
+// $Id: ViewerGui.cpp 417 2012-08-27 13:02:40Z ahornung $
 
 /**
  * Octomap:
@@ -190,6 +190,8 @@ namespace octomap{
       }
       else if (dynamic_cast<ColorOcTree*>(tree)) {
         r->octree_drawer = new ColorOcTreeDrawer();
+      } else{
+        OCTOMAP_ERROR("Could not create drawer for tree type %s\n", tree->getTreeType().c_str());
       }
 
       delete r->octree;
@@ -212,6 +214,8 @@ namespace octomap{
       }
       else if (dynamic_cast<ColorOcTree*>(tree)) {      
         otr.octree_drawer = new ColorOcTreeDrawer();
+      } else{
+        OCTOMAP_ERROR("Could not create drawer for tree type %s\n", tree->getTreeType().c_str());
       }
       otr.octree = tree;
       otr.origin = origin;
@@ -270,13 +274,13 @@ namespace octomap{
 
       m_glwidget->setSceneBoundingBox(qglviewer::Vec(minX, minY, minZ), qglviewer::Vec(maxX, maxY, maxZ));
 
-    if (m_octrees.size()) {
+    //if (m_octrees.size()) {
       QString size = QString("%L1 x %L2 x %L3 m^3; %L4 nodes").arg(sizeX).arg(sizeY).arg(sizeZ).arg(unsigned(num_nodes));
       QString memory = QString("Single node: %L1 B; ").arg(memorySingleNode)
         + QString ("Octree: %L1 B (%L2 MB)").arg(memoryUsage).arg((double) memoryUsage/(1024.*1024.), 0, 'f', 3);
       m_mapMemoryStatus->setText(memory);
       m_mapSizeStatus->setText(size);
-    }
+    //}
 
     m_glwidget->updateGL();
 
@@ -806,11 +810,13 @@ namespace octomap{
 
       // TODO: get rid of casts (requires occupancy tree interface)
       if (fileinfo.suffix() == "bt") {
-        if (dynamic_cast<OcTree*>(t)) {
-          ((OcTree*) t)->writeBinaryConst(std_filename);
-        }
-        else if (dynamic_cast<ColorOcTree*>(t)) {
-          ((ColorOcTree*) t)->writeBinaryConst(std_filename);
+        AbstractOccupancyOcTree* ot = dynamic_cast<AbstractOccupancyOcTree*> (t);
+        if (ot)
+          ot->writeBinaryConst(std_filename);
+        else{
+          QMessageBox::warning(this, "Unknown tree type",
+                                       "Could not convert to occupancy tree for writing .bt file",
+                                       QMessageBox::Ok);
         }
       }
       else if (fileinfo.suffix() == "ot"){
@@ -1128,6 +1134,7 @@ namespace octomap{
       delete (it->second.octree);
     }
     m_octrees.clear();
+    showOcTree();
   }
 
   void ViewerGui::on_actionTest_triggered(){
