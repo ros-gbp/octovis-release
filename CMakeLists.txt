@@ -1,14 +1,14 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT( octomap-distribution )
 
-ENABLE_TESTING()  # enable CTest environment of subprojects
+#ENABLE_TESTING()  # enable CTest environment of subprojects
 
-ADD_SUBDIRECTORY( octomap )
+#ADD_SUBDIRECTORY( octomap )
 ADD_SUBDIRECTORY( octovis )
-ADD_SUBDIRECTORY( dynamicEDT3D )
+#ADD_SUBDIRECTORY( dynamicEDT3D )
 
 # make complete package release from source 
-IF (NOT WIN32)
+IF (FALSE)
 	SET(PKG_NAME "${PROJECT_NAME}.tar.gz")
 	SET(DIST_DIR "${CMAKE_BINARY_DIR}/dist")
 	ADD_CUSTOM_TARGET("dist" 
