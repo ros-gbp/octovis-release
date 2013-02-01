@@ -1,0 +1,12 @@
+Source: ros-fuerte-octovis
+Section: misc
+Priority: extra
+Maintainer: Armin Hornung <hornunga@informatik.uni-freiburg.de>
+Build-Depends: debhelper (>= 7.0.50~), ros-fuerte-octomap,cmake,libqt4-opengl-dev,libqt4-dev,libqglviewer-qt4-dev
+Homepage: http://octomap.sf.net
+Standards-Version: 3.9.2
+
+Package: ros-fuerte-octovis
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libqtgui4,ros-fuerte-octomap,libqglviewer-qt4-2,libqt4-opengl
+Description: octovis is visualization tool for the OctoMap library based on Qt and libQGLViewer. See http://octomap.sf.net for details.
